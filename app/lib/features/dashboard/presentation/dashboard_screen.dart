@@ -6,6 +6,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../widgets/analysis_card.dart';
 import '../../../widgets/futuristic_container.dart';
+import '../../../widgets/motion/motion.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -51,11 +52,29 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 sliver: SliverList.list(
                   children: [
-                    _CreditCard(credits: credits, onBuyTap: () => context.push('/credits')),
+                    MotionScale(
+                      delay: Motion.stagger(0),
+                      child: _CreditCard(
+                        credits: credits,
+                        onBuyTap: () => context.push('/credits'),
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    _ActionGrid(loc: loc, onNavigate: (path) => context.push(path)),
+                    MotionFadeSlide(
+                      delay: Motion.stagger(1),
+                      child: _ActionGrid(
+                        loc: loc,
+                        onNavigate: (path) => context.push(path),
+                      ),
+                    ),
                     const SizedBox(height: 24),
-                    Text('Latest Analyses', style: Theme.of(context).textTheme.titleMedium),
+                    MotionFadeSlide(
+                      delay: Motion.stagger(2),
+                      child: Text(
+                        'Latest Analyses',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     analyses.when(
                       data: (list) => list.isEmpty
@@ -66,10 +85,26 @@ class DashboardScreen extends ConsumerWidget {
                           : Column(
                               children: list
                                   .take(10)
-                                  .map((analysis) => AnalysisCard(
-                                        analysis: analysis,
-                                        onTap: () => context.push('/analysis/result/${analysis.id}', extra: analysis),
-                                      ))
+                                  .toList()
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (entry) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: MotionFadeSlide(
+                                        delay: Motion.stagger(entry.key),
+                                        child: AnalysisCard(
+                                          analysis: entry.value,
+                                          onTap: () => context.push(
+                                            '/analysis/result/${entry.value.id}',
+                                            extra: entry.value,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
                                   .toList(),
                             ),
                       loading: () => const Padding(
@@ -107,21 +142,35 @@ class _CreditCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Credit balance', style: TextStyle(color: Colors.white70)),
+                const Text(
+                  'Credit balance',
+                  style: TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 6),
                 credits.when(
                   data: (value) => Text(
                     '$value',
-                    style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  loading: () => const CircularProgressIndicator(color: Colors.white),
-                  error: (e, _) => Text('Error: $e', style: const TextStyle(color: Colors.white)),
+                  loading: () =>
+                      const CircularProgressIndicator(color: Colors.white),
+                  error: (e, _) => Text(
+                    'Error: $e',
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.blueGrey),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.blueGrey,
+            ),
             onPressed: onBuyTap,
             child: const Text('Buy credits'),
           ),
@@ -140,16 +189,37 @@ class _ActionGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _ActionItem(icon: Icons.add_photo_alternate, label: loc.translate('new_analysis'), path: '/analysis/new'),
-      _ActionItem(icon: Icons.list_alt, label: 'My Analyses', path: '/analysis/list'),
-      _ActionItem(icon: Icons.table_chart, label: loc.translate('batch_analysis'), path: '/analysis/batch'),
-      _ActionItem(icon: Icons.shopping_bag, label: loc.translate('credits'), path: '/credits'),
+      _ActionItem(
+        icon: Icons.add_photo_alternate,
+        label: loc.translate('new_analysis'),
+        path: '/analysis/new',
+      ),
+      _ActionItem(
+        icon: Icons.list_alt,
+        label: 'My Analyses',
+        path: '/analysis/list',
+      ),
+      _ActionItem(
+        icon: Icons.table_chart,
+        label: loc.translate('batch_analysis'),
+        path: '/analysis/batch',
+      ),
+      _ActionItem(
+        icon: Icons.shopping_bag,
+        label: loc.translate('credits'),
+        path: '/credits',
+      ),
     ];
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 2.5, crossAxisSpacing: 12, mainAxisSpacing: 12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 2.5,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
       itemBuilder: (context, index) {
         final item = items[index];
         return GestureDetector(
@@ -159,11 +229,21 @@ class _ActionGrid extends StatelessWidget {
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                  child: Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.12),
+                  child: Icon(
+                    item.icon,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(item.label, style: Theme.of(context).textTheme.titleSmall)),
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               ],
             ),
           ),

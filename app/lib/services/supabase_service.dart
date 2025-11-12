@@ -109,8 +109,14 @@ class SupabaseService {
   Future<AnalysisModel> waitForAnalysis(String analysisId) async {
     for (var i = 0; i < 90; i++) {
       final current = await fetchAnalysis(analysisId);
-      if (current.status == 'done' && current.seoOutput != null) {
-        return current;
+      if (current.status == 'error') {
+        throw Exception('Analysis failed. Please try again.');
+      }
+      if (current.status == 'done') {
+        if (current.seoOutput != null) {
+          return current;
+        }
+        throw Exception('Analysis completed but no SEO output was generated.');
       }
       await Future.delayed(const Duration(seconds: 2));
     }

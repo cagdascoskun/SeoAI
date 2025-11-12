@@ -28,15 +28,28 @@ class AnalysisCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         onTap: onTap,
-        leading: image == null
-            ? CircleAvatar(
-                backgroundColor: _statusColor(analysis.status).withValues(alpha: 0.15),
-                child: Icon(Icons.auto_awesome, color: _statusColor(analysis.status)),
-              )
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(image, width: 56, height: 56, fit: BoxFit.cover),
-              ),
+        leading: Hero(
+          tag: 'analysis-image-${analysis.id}',
+          child: image == null
+              ? CircleAvatar(
+                  backgroundColor: _statusColor(
+                    analysis.status,
+                  ).withValues(alpha: 0.15),
+                  child: Icon(
+                    Icons.auto_awesome,
+                    color: _statusColor(analysis.status),
+                  ),
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    image,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+        ),
         title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(analysis.status.toUpperCase()),
         trailing: const Icon(Icons.chevron_right),

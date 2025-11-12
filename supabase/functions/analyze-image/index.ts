@@ -1,11 +1,21 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { supabaseAdmin } from "../_shared/client.ts";
 import { ChatContent, openai } from "../_shared/openai.ts";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 serve(async (req) => {
   const payload = await req.json();
   const { analysis_id, image_url, user_id } = payload;
   try {
+
+    const imageResponse = await fetch(image_url);
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to download image: ${imageResponse.status}`);
+    }
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const imageMime = imageResponse.headers.get("content-type") ?? "image/jpeg";
+    const base64Image = encodeBase64(new Uint8Array(imageBuffer));
+    const dataUrl = `data:${imageMime};base64,${base64Image}`;
 
     const userContent: ChatContent = [
       {
@@ -14,7 +24,7 @@ serve(async (req) => {
       },
       {
         type: "image_url",
-        image_url: { url: image_url }
+        image_url: { url: dataUrl }
       },
     ];
 
@@ -23,16 +33,25 @@ serve(async (req) => {
       messages: [
         {
           role: "system",
-          content: `You are an AI SEO assistant for e-commerce listings.
-          You look at product photos and generate SEO-optimized data for Etsy, Amazon and Shopify.
-          Focus on materials, style, color, category, and purpose.
-          Respond ONLY in valid JSON format with:
-          {
-            "title": "short optimized product title",
-            "seo_keywords": ["keyword1", "keyword2", "keyword3"],
-            "etsy_tags": ["tag1", "tag2", "tag3"],
-            "description": "1-2 sentences product description."
-          }`
+          content: `You are a senior e-commerce SEO strategist specializing in Etsy, Amazon, and Shopify listings.
+Your job is to deeply analyze the provided product image and generate a *maximally optimized* SEO metadata set.
+
+Goals:
+- Maximize search visibility (focus on relevant long-tail keywords)
+- Improve CTR with persuasive wording
+- Ensure high relevance between tags, title, and description
+- Output must remain concise, professional, and marketplace-appropriate.
+
+Return ONLY valid JSON (no markdown, no explanations), structured as:
+{
+  "title": "Compelling, descriptive, keyword-rich title (minimum 15 words, natural sentence style)",
+  "seo_keywords": ["20-25 unique, high-volume, long-tail keywords"],
+  "etsy_tags": ["20 optimized short tags (2–3 words each, no duplicates, lowercase)"],
+  "description": "A rich 200–300 word description covering materials, emotional appeal, use cases, and SEO phrases naturally embedded."
+}
+
+Use natural English phrasing. Never repeat words unnecessarily.
+Ensure all outputs are consistent, detailed, and tailored to the analyzed image.`
         },
         {
           role: "user",

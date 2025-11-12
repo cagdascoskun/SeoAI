@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/app_providers.dart';
 import '../../../widgets/futuristic_container.dart';
+import '../../../widgets/motion/motion.dart';
 
 class MyAnalysesScreen extends ConsumerWidget {
   const MyAnalysesScreen({super.key});
@@ -16,7 +17,9 @@ class MyAnalysesScreen extends ConsumerWidget {
       body: FuturisticBackground(
         child: analyses.when(
           data: (items) => items.isEmpty
-              ? const Center(child: Text('No analyses yet'))
+              ? const Center(
+                  child: MotionFadeSlide(child: Text('No analyses yet')),
+                )
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -28,49 +31,69 @@ class MyAnalysesScreen extends ConsumerWidget {
                   itemCount: items.length,
                   itemBuilder: (_, index) {
                     final analysis = items[index];
-                    return GestureDetector(
-                      onTap: () => context.push('/analysis/result/${analysis.id}', extra: analysis),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          image: analysis.imageUrl == null
-                              ? null
-                              : DecorationImage(image: NetworkImage(analysis.imageUrl!), fit: BoxFit.cover),
+                    return MotionScale(
+                      delay: Motion.stagger(index),
+                      child: GestureDetector(
+                        onTap: () => context.push(
+                          '/analysis/result/${analysis.id}',
+                          extra: analysis,
                         ),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(18),
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
-                            ),
+                            image: analysis.imageUrl == null
+                                ? null
+                                : DecorationImage(
+                                    image: NetworkImage(analysis.imageUrl!),
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          alignment: Alignment.bottomLeft,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Chip(
-                                label: Text(analysis.status.toUpperCase()),
-                                backgroundColor: Colors.white.withValues(alpha: 0.8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.7),
+                                  Colors.transparent,
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                analysis.seoOutput?.title ?? 'Analysis in progress',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            alignment: Alignment.bottomLeft,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Chip(
+                                  label: Text(analysis.status.toUpperCase()),
+                                  backgroundColor: Colors.white.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  analysis.seoOutput?.title ??
+                                      'Analysis in progress',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     );
                   },
                 ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: MotionScale(child: CircularProgressIndicator()),
+          ),
           error: (error, _) => Center(child: Text('Error: $error')),
         ),
       ),

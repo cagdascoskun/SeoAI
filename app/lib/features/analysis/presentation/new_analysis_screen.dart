@@ -7,6 +7,7 @@ import '../../../core/providers/app_providers.dart';
 import '../../../services/file_service.dart';
 import '../controllers/new_analysis_controller.dart';
 import '../../../widgets/futuristic_container.dart';
+import '../../../widgets/motion/motion.dart';
 
 class NewAnalysisScreen extends ConsumerStatefulWidget {
   const NewAnalysisScreen({super.key});
@@ -31,7 +32,9 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
 
   Future<void> _submit() async {
     if (_image == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an image first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image first.')),
+      );
       return;
     }
     final controller = ref.read(newAnalysisControllerProvider.notifier);
@@ -43,7 +46,9 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$error')));
     }
   }
 
@@ -52,7 +57,10 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
     final loc = AppLocalizations.of(context);
     final state = ref.watch(newAnalysisControllerProvider);
     final creditsState = ref.watch(creditsProvider);
-    final credits = creditsState.maybeWhen(data: (value) => value, orElse: () => null);
+    final credits = creditsState.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
     final hasCredits = (credits ?? 1) > 0;
 
     return Scaffold(
@@ -62,7 +70,10 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
           TextButton.icon(
             onPressed: () => context.push('/analysis/list'),
             icon: const Icon(Icons.list_alt, color: Colors.white),
-            label: const Text('My Analyses', style: TextStyle(color: Colors.white)),
+            label: const Text(
+              'My Analyses',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -70,11 +81,22 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: FilledButton.icon(
-          onPressed: (!hasCredits || _image == null || state.isLoading) ? null : _submit,
+          onPressed: (!hasCredits || _image == null || state.isLoading)
+              ? null
+              : _submit,
           icon: state.isLoading
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
               : const Icon(Icons.auto_fix_high),
-          label: Text(hasCredits ? loc.translate('analyze') : 'Not enough credits'),
+          label: Text(
+            hasCredits ? loc.translate('analyze') : 'Not enough credits',
+          ),
         ),
       ),
       body: FuturisticBackground(
@@ -83,13 +105,28 @@ class _NewAnalysisScreenState extends ConsumerState<NewAnalysisScreen> {
             ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
               children: [
-                _StepHeader(currentStep: _currentStep),
+                MotionFadeSlide(
+                  delay: Motion.stagger(0),
+                  child: _StepHeader(currentStep: _currentStep),
+                ),
                 const SizedBox(height: 16),
-                _UploadCard(image: _image, onPick: _pickImage),
+                MotionScale(
+                  delay: Motion.stagger(1),
+                  child: _UploadCard(image: _image, onPick: _pickImage),
+                ),
                 const SizedBox(height: 16),
-                _CreditsCard(creditsState: creditsState, hasCredits: hasCredits),
+                MotionScale(
+                  delay: Motion.stagger(2),
+                  child: _CreditsCard(
+                    creditsState: creditsState,
+                    hasCredits: hasCredits,
+                  ),
+                ),
                 const SizedBox(height: 16),
-                _TimelineCard(step: _currentStep),
+                MotionFadeSlide(
+                  delay: Motion.stagger(3),
+                  child: _TimelineCard(step: _currentStep),
+                ),
               ],
             ),
             if (state.isLoading)
@@ -120,7 +157,10 @@ class _StepHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Step ${currentStep + 1} / ${steps.length}', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Step ${currentStep + 1} / ${steps.length}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Row(
             children: List.generate(steps.length, (index) {
@@ -130,7 +170,9 @@ class _StepHeader extends StatelessWidget {
                   height: 6,
                   margin: EdgeInsets.only(left: index == 0 ? 0 : 6),
                   decoration: BoxDecoration(
-                    color: active ? Theme.of(context).colorScheme.primary : Colors.grey.shade800,
+                    color: active
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey.shade800,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -138,8 +180,14 @@ class _StepHeader extends StatelessWidget {
             }),
           ),
           const SizedBox(height: 12),
-          Text(steps[currentStep.clamp(0, steps.length - 1)].title, style: Theme.of(context).textTheme.titleSmall),
-          Text(steps[currentStep.clamp(0, steps.length - 1)].subtitle, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            steps[currentStep.clamp(0, steps.length - 1)].title,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          Text(
+            steps[currentStep.clamp(0, steps.length - 1)].subtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ],
       ),
     );
@@ -158,15 +206,21 @@ class _UploadCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('1. Upload your image', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            '1. Upload your image',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: onPick,
             child: Container(
               height: 220,
               width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.5),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1.5,
+                ),
                 borderRadius: BorderRadius.circular(18),
                 image: image == null
                     ? null
@@ -190,7 +244,10 @@ class _UploadCard extends StatelessWidget {
           if (image != null)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(image!.name, style: Theme.of(context).textTheme.bodySmall),
+              child: Text(
+                image!.name,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
         ],
       ),
@@ -216,7 +273,10 @@ class _CreditsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('2. Credits overview', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            '2. Credits overview',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           creditsState.when(
             data: (value) => Text('Remaining credits: $value'),
@@ -226,7 +286,10 @@ class _CreditsCard extends StatelessWidget {
           if (!hasCredits)
             const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Text('Not enough credits', style: TextStyle(color: Colors.red)),
+              child: Text(
+                'Not enough credits',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
         ],
       ),
@@ -249,7 +312,10 @@ class _TimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Analysis timeline', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Analysis timeline',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
           Column(
             children: List.generate(timeline.length, (index) {
@@ -257,10 +323,16 @@ class _TimelineCard extends StatelessWidget {
               final active = index <= step;
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15) : Colors.grey.shade800,
+                  backgroundColor: active
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.15)
+                      : Colors.grey.shade800,
                   child: Icon(
                     active ? Icons.check : Icons.watch_later_outlined,
-                    color: active ? Theme.of(context).colorScheme.primary : Colors.grey,
+                    color: active
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
                   ),
                 ),
                 title: Text(item.title),
