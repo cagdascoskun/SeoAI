@@ -1,0 +1,12 @@
+name: shared_models
+version: 0.1.0
+publish_to: 'none'
+description: Shared data contracts between Flutter app and Supabase Edge Functions.
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  meta: ^1.11.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
